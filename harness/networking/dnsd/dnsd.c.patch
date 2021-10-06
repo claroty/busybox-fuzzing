@@ -1,0 +1,82 @@
+--- ./networking/dnsd.c	2021-10-06 19:18:22.638842364 +0300
++++ ./networking/dnsd.c.patched	2021-10-06 19:18:37.211456254 +0300
+@@ -507,69 +507,27 @@
+ int dnsd_main(int argc, char **argv) MAIN_EXTERNALLY_VISIBLE;
+ int dnsd_main(int argc UNUSED_PARAM, char **argv)
+ {
+-	const char *listen_interface = "0.0.0.0";
+-	const char *fileconf = "/etc/dnsd.conf";
+ 	struct dns_entry *conf_data;
+ 	uint32_t conf_ttl = DEFAULT_TTL;
+-	char *sttl, *sport;
+-	len_and_sockaddr *lsa, *from, *to;
+-	unsigned lsa_size;
+-	int udps, opts;
+-	uint16_t port = 53;
+-	/* Ensure buf is 32bit aligned (we need 16bit, but 32bit can't hurt) */
+-	uint8_t buf[MAX_PACK_LEN + 1] ALIGN4;
+-
+-	opts = getopt32(argv, "vsi:c:t:p:d", &listen_interface, &fileconf, &sttl, &sport);
+-	//if (opts & (1 << 0)) // -v
+-	//if (opts & (1 << 1)) // -s
+-	//if (opts & (1 << 2)) // -i
+-	//if (opts & (1 << 3)) // -c
+-	if (opts & (1 << 4)) // -t
+-		conf_ttl = xatou_range(sttl, 1, 0xffffffff);
+-	if (opts & (1 << 5)) // -p
+-		port = xatou_range(sport, 1, 0xffff);
+-	if (opts & (1 << 6)) { // -d
+-		bb_daemonize_or_rexec(DAEMON_CLOSE_EXTRA_FDS, argv);
+-		openlog(applet_name, LOG_PID, LOG_DAEMON);
+-		logmode = LOGMODE_SYSLOG;
+-	}
+ 
++	const char *fileconf = "/etc/dnsd.conf";
+ 	conf_data = parse_conf_file(fileconf);
+ 
+-	lsa = xdotted2sockaddr(listen_interface, port);
+-	udps = xsocket(lsa->u.sa.sa_family, SOCK_DGRAM, 0);
+-	xbind(udps, &lsa->u.sa, lsa->len);
+-	socket_want_pktinfo(udps); /* needed for recv_from_to to work */
+-	lsa_size = LSA_LEN_SIZE + lsa->len;
+-	from = xzalloc(lsa_size);
+-	to = xzalloc(lsa_size);
+-
+-	{
+-		char *p = xmalloc_sockaddr2dotted(&lsa->u.sa);
+-		bb_info_msg("accepting UDP packets on %s", p);
+-		free(p);
+-	}
++	uint8_t buf[MAX_PACK_LEN + 1] ALIGN4;
++	ssize_t r;
+ 
+-	while (1) {
+-		int r;
+-		/* Try to get *DEST* address (to which of our addresses
+-		 * this query was directed), and reply from the same address.
+-		 * Or else we can exhibit usual UDP ugliness:
+-		 * [ip1.multihomed.ip2] <=  query to ip1  <= peer
+-		 * [ip1.multihomed.ip2] => reply from ip2 => peer (confused) */
+-		memcpy(to, lsa, lsa_size);
+-		r = recv_from_to(udps, buf, MAX_PACK_LEN + 1, 0, &from->u.sa, &to->u.sa, lsa->len);
++	while (__AFL_LOOP(1000)) {
++		r = -1; 
++		memset(buf, 0, MAX_PACK_LEN);
++		r = read(STDIN_FILENO, buf, MAX_PACK_LEN);
+ 		if (r < 12 || r > MAX_PACK_LEN) {
+-			bb_error_msg("packet size %d, ignored", r);
++			// bb_error_msg("packet size %d, ignored", r);
+ 			continue;
+ 		}
+-		if (OPT_verbose)
+-			bb_simple_info_msg("got UDP packet");
++		// if (OPT_verbose)
++		// 	bb_simple_info_msg("got UDP packet");
+ 		buf[r] = '\0'; /* paranoia */
+ 		r = process_packet(conf_data, conf_ttl, buf, r);
+-		if (r <= 0)
+-			continue;
+-		send_to_from(udps, buf, r, 0, &from->u.sa, &to->u.sa, lsa->len);
+ 	}
+ 	return 0;
+ }
