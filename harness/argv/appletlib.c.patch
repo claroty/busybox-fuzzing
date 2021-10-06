@@ -1,0 +1,69 @@
+--- libbb/appletlib.c	2021-10-06 14:43:39.286651197 +0300
++++ libbb/appletlib.c.patched	2021-10-06 17:02:06.270144976 +0300
+@@ -1138,22 +1138,51 @@
+ 	if (argv[1] && is_prefixed_with(bb_basename(argv[0]), "busybox"))
+ 		argv++;
+ # endif
+-	applet_name = argv[0];
+-	if (applet_name[0] == '-')
+-		applet_name++;
+-	applet_name = bb_basename(applet_name);
+-
+-	/* If we are a result of execv("/proc/self/exe"), fix ugly comm of "exe" */
+-	if (ENABLE_FEATURE_SH_STANDALONE
+-	 || ENABLE_FEATURE_PREFER_APPLETS
+-	 || !BB_MMU
+-	) {
+-		if (NUM_APPLETS > 1)
+-			set_task_comm(applet_name);
+-	}
+ 
+-	parse_config_file(); /* ...maybe, if FEATURE_SUID_CONFIG */
+-	run_applet_and_exit(applet_name, argv);
++
++
++
++
++	// Basic version
++	//applet_name = argv[0];
++	//applet_name = bb_basename(applet_name);
++	//parse_config_file(); /* ...maybe, if FEATURE_SUID_CONFIG */
++	//run_applet_and_exit(applet_name, argv);
++
++	// For fuzzing purposes
++////////// START OF FUZZING SECTION ////////
++       static char  in_buf[100000];
++       static char* ret[1000];
++       char* ptr = in_buf;
++       int   rc  = 0;
++
++       if (read(0, in_buf, 100000 - 4) < 0);
++
++       while (*ptr) {
++               ret[rc] = ptr;
++
++               /* insert '\0' at the end of ret[rc] on first space-sym */
++               while (*ptr && !isspace(*ptr)) ptr++;
++               *ptr = '\0';
++               ptr++;
++
++               /* skip more space-syms */
++               while (*ptr && isspace(*ptr)) ptr++;
++
++               rc++;
++       }
++       ret[rc] = 0;
++       ret[rc+1] = 0;
++
++       argc = rc;
++       argv = ret;
++
++       if(argv[0]) {
++            applet_name = bb_basename(argv[0]);
++            run_applet_and_exit(applet_name, argv);
++       }
++////////// END OF FUZZING SECTION ////////
++
+ 
+ #endif
+ }
