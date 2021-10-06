@@ -205,8 +205,6 @@ More examples for utilities that support STDIN input:
 
 Some applets take input from files. For example awk and grep (first create a.txt):
 
-
-
 * `afl-fuzz -i ./input/ -o output/ -- ./busybox awk -f @@ ./a.txt`
 * `afl-fuzz -i ./input/ -o output/ -- ./busybox grep -f @@ ./a.bin`
 
@@ -300,10 +298,9 @@ int nslookup_main(int argc UNUSED_PARAM, char `argv)
 * Use dictionaries with relevant keywords (arguments, applets)
 * Stop all running services (for example: `cups, apparmor, fail2ban, postgresql, mariadb, rabbitmq-server, redis, firewalld`)
 * Add to the machine more RAM and CPUs if possible
-* Exit
 
 
-### Step 7: Sanitziers
+### Step 7: Sanitizers
 
 Address Sanitizers (ASAN) track memory actions such as malloc, free, memcpy to provide better detection of memory corruption errors. A program compiled with ASAN will exit with a signal when a memory corruption is detected, so AFL is able to detect that as a crash.
 
