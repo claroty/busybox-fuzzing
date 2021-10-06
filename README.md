@@ -1,4 +1,5 @@
 ## Unboxing Busybox - BusyBox Fuzzing
+![alt text](imgs/fuzz.png "Fuzzing BusyBox")
 
 ### Intro
 Embedded devices with limited memory and storage resources are likely to leverage a tool such as [BusyBox](https://www.busybox.net/), which is marketed as the Swiss Army Knife of embedded Linux. BusyBox is a software suite of many useful Unix utilities, known as applets, that are packaged as a single executable file. You can find within BusyBox a fully fledged shell, a DHCP client/server, and small utilities such as `cp, ls, grep`, and others. You’re also likely to find many OT and IoT devices running BusyBox, including popular programmable logic controllers (PLCs), human-machine interfaces (HMIs), and remote terminal units (RTUs)—many of which now run on Linux. 
