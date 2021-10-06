@@ -1,4 +1,4 @@
-## Unboxing Busybox
+## Unboxing Busybox - BusyBox Fuzzing
 
 ### Intro
 Embedded devices with limited memory and storage resources are likely to leverage a tool such as [BusyBox](https://www.busybox.net/), which is marketed as the Swiss Army Knife of embedded Linux. BusyBox is a software suite of many useful Unix utilities, known as applets, that are packaged as a single executable file. You can find within BusyBox a fully fledged shell, a DHCP client/server, and small utilities such as `cp, ls, grep`, and others. You’re also likely to find many OT and IoT devices running BusyBox, including popular programmable logic controllers (PLCs), human-machine interfaces (HMIs), and remote terminal units (RTUs)—many of which now run on Linux. 
@@ -54,7 +54,7 @@ Depending what we are planning to fuzz, we would need to modify the source code 
 To start fuzzing busybox with AFL you'll need to compile it with AFL. First make sure you have AFL installed:
 
 
-```
+``` bash
 wget http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz
 tar xzf afl-latest.tgz
 cd afl*
@@ -71,7 +71,7 @@ Next, we need to obtain the latest version of busybox and compile with AFL. Choo
 First let’s compile busybox without AFL:
 
 
-```
+``` bash
 wget https://git.busybox.net/busybox/snapshot/busybox-1_33_1.tar.bz2
 tar -xvf busybox-1_33_1.tar.bz2
 cd busybox*
@@ -109,7 +109,7 @@ Now save `Makefile` and re-run `make install.`
 To verify that the new busybox binaries were compiled correctly with AFL, let’s run a simple AFL instance.
 
 
-```
+``` bash
 mkdir fuzz && cd fuzz
 mkdir input
 mkdir output
@@ -123,7 +123,7 @@ At this point it won’t do much because we are trying to send fuzzed inputs thr
 But if we will run:
 
 
-```
+``` bash
 afl-fuzz -i ./input/ -o output/ -- ./busybox bc
 ```
 
@@ -205,8 +205,6 @@ More examples for utilities that support STDIN input:
 
 Some applets take input from files. For example awk and grep (first create a.txt):
 
-
-
 * `afl-fuzz -i ./input/ -o output/ -- ./busybox awk -f @@ ./a.txt`
 * `afl-fuzz -i ./input/ -o output/ -- ./busybox grep -f @@ ./a.bin`
 
@@ -224,7 +222,7 @@ To run AFL on the HTTPD server:
 
 
 ```
-afl-fuzz -m none -i ./input -o ./output -- ./_install/usr/sbin/httpd -f -i ./www
+afl-fuzz -m none -i ./input -o ./output -- ./usr/sbin/httpd -f -i ./www
 ```
 
 
@@ -236,7 +234,7 @@ To fuzz HTTPD options that are disabled by default run the httpd server with a c
 In order to fuzz the DNS response packet handling we changed the `dnsd_main` (`networking/dnsd.c`) function to the following code:
 
 
-```
+``` c
 int dnsd_main(int argc, char `argv) MAIN_EXTERNALLY_VISIBLE;
 int dnsd_main(int argc UNUSED_PARAM, char `argv)
 {
@@ -275,8 +273,8 @@ This code only does some essential initializations and then calls the process_pa
 Similar to dnsd we reduced the `nslookup_main` (`networking/nslookup.c`) to the following:
 
 
-```
- int nslookup_main(int argc, char `argv) MAIN_EXTERNALLY_VISIBLE;
+``` c
+int nslookup_main(int argc, char `argv) MAIN_EXTERNALLY_VISIBLE;
 int nslookup_main(int argc UNUSED_PARAM, char `argv)
 {
 	int res;
@@ -300,10 +298,9 @@ int nslookup_main(int argc UNUSED_PARAM, char `argv)
 * Use dictionaries with relevant keywords (arguments, applets)
 * Stop all running services (for example: `cups, apparmor, fail2ban, postgresql, mariadb, rabbitmq-server, redis, firewalld`)
 * Add to the machine more RAM and CPUs if possible
-* Exit
 
 
-### Step 7: Sanitziers
+### Step 7: Sanitizers
 
 Address Sanitizers (ASAN) track memory actions such as malloc, free, memcpy to provide better detection of memory corruption errors. A program compiled with ASAN will exit with a signal when a memory corruption is detected, so AFL is able to detect that as a crash.
 
