@@ -54,7 +54,7 @@ Depending what we are planning to fuzz, we would need to modify the source code 
 To start fuzzing busybox with AFL you'll need to compile it with AFL. First make sure you have AFL installed:
 
 
-```
+``` bash
 wget http://lcamtuf.coredump.cx/afl/releases/afl-latest.tgz
 tar xzf afl-latest.tgz
 cd afl*
@@ -71,7 +71,7 @@ Next, we need to obtain the latest version of busybox and compile with AFL. Choo
 First let’s compile busybox without AFL:
 
 
-```
+``` bash
 wget https://git.busybox.net/busybox/snapshot/busybox-1_33_1.tar.bz2
 tar -xvf busybox-1_33_1.tar.bz2
 cd busybox*
@@ -109,7 +109,7 @@ Now save `Makefile` and re-run `make install.`
 To verify that the new busybox binaries were compiled correctly with AFL, let’s run a simple AFL instance.
 
 
-```
+``` bash
 mkdir fuzz && cd fuzz
 mkdir input
 mkdir output
@@ -123,7 +123,7 @@ At this point it won’t do much because we are trying to send fuzzed inputs thr
 But if we will run:
 
 
-```
+``` bash
 afl-fuzz -i ./input/ -o output/ -- ./busybox bc
 ```
 
@@ -224,7 +224,7 @@ To run AFL on the HTTPD server:
 
 
 ```
-afl-fuzz -m none -i ./input -o ./output -- ./_install/usr/sbin/httpd -f -i ./www
+afl-fuzz -m none -i ./input -o ./output -- ./usr/sbin/httpd -f -i ./www
 ```
 
 
@@ -236,7 +236,7 @@ To fuzz HTTPD options that are disabled by default run the httpd server with a c
 In order to fuzz the DNS response packet handling we changed the `dnsd_main` (`networking/dnsd.c`) function to the following code:
 
 
-```
+``` c
 int dnsd_main(int argc, char `argv) MAIN_EXTERNALLY_VISIBLE;
 int dnsd_main(int argc UNUSED_PARAM, char `argv)
 {
@@ -275,8 +275,8 @@ This code only does some essential initializations and then calls the process_pa
 Similar to dnsd we reduced the `nslookup_main` (`networking/nslookup.c`) to the following:
 
 
-```
- int nslookup_main(int argc, char `argv) MAIN_EXTERNALLY_VISIBLE;
+``` c
+int nslookup_main(int argc, char `argv) MAIN_EXTERNALLY_VISIBLE;
 int nslookup_main(int argc UNUSED_PARAM, char `argv)
 {
 	int res;
