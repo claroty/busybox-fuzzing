@@ -42,7 +42,8 @@ Applets can receive input data from multiple sources, including:
 * ARGV: for example reading `ls` arguments - `ls -lat`
 * STDIN: for example `bc` - `echo 1+1 | bc`
 * Files: for example reading file for processing - `lzma -d /path/to/file.lzma`
-* Network (servers): for example `DHCP, DNS, HTTP`, and more.
+* Network (servers): for example `DHCP, DNS, HTTP, TELNET`, and more.
+* Network (clients): for example `NSLOOKUP, HTTP Client`
 
 Depending what we are planning to fuzz, we would need to modify the source code in a specific way so it will fit our needs.
 
