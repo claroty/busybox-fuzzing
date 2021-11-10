@@ -95,11 +95,11 @@ Next let’s compile a busybox with AFL. To do so, we would need to edit `Makefi
 
 To compile with `afl-gcc`, In `Makefile:`
 * Under `# Make variables (CC, etc...)` edit `cc` to:
-    * `cc = afl-gcc`
+    * `CC = afl-gcc`
 
 To compile with `afl-clang`, In `Makefile`:
 * Under `# Make variables (CC, etc...)` edit `cc` to:
-    * `cc = afl-clang`
+    * `CC = afl-clang`
 * And edit LDFLAGS:
     * `LDFLAGS="-Wl,--allow-multiple-definition" make -j12`
 
@@ -107,6 +107,12 @@ Now save `Makefile` and re-run `make install.`
 
 
 ### Step 4: Fuzz BusyBox
+
+Directory structure:
+- busybox (binary)
+- fuzz (dir)   <--   we will be in this directory
+	- input (dir)
+	- output (dir)
 
 To verify that the new busybox binaries were compiled correctly with AFL, let’s run a simple AFL instance.
 
@@ -126,7 +132,7 @@ But if we will run:
 
 
 ``` bash
-afl-fuzz -i ./input/ -o output/ -- ./busybox bc
+afl-fuzz -i ./input/ -o output/ -- ../busybox bc
 ```
 
 
@@ -171,7 +177,9 @@ if (read(0, in_buf, 100000 - 4) < 0) {
                while (*ptr && isspace(*ptr)) ptr++;
 
                rc++;
-     }
+     	}
+    }
+
 ret[rc] = 0;
 ret[rc+1] = 0;
 argc = rc;
@@ -179,7 +187,7 @@ argv = ret;
 applet_name = bb_basename(argv[0]);                       
 
 // choose specific applet name
-run_applet_and_exit(“ls”, argv);
+run_applet_and_exit("ls", argv);
 // or take from argv[0] (random)
 // run_applet_and_exit(applet_name, argv);
 ```
@@ -190,25 +198,25 @@ run_applet_and_exit(“ls”, argv);
 
 By default AFL transfer input data through STDIN, so we don’t need to do much. For example, bc utility takes input from STDIN, so this should work out-of-the-box:
 
-`afl-fuzz -i ./input/ -o output/ -- ./busybox bc`
+`afl-fuzz -i ./input/ -o output/ -- ../busybox bc`
 
 More examples for utilities that support STDIN input:
 
 
 
-* `afl-fuzz -i ./input/ -o output/ -- ./busybox gunzip -c -`
-* `afl-fuzz -i ./input/ -o output/ -- ./busybox unlzma -c -`
-* `afl-fuzz -i ./input/ -o output/ -- ./busybox bunzip2 -c -`
-* `afl-fuzz -i ./input/ -o output/ -- ./busybox tar -vtO -`
-* `afl-fuzz -i ./input/ -o output/ -- ./busybox tar -vxO -`
+* `afl-fuzz -i ./input/ -o output/ -- ../busybox gunzip -c -`
+* `afl-fuzz -i ./input/ -o output/ -- ../busybox unlzma -c -`
+* `afl-fuzz -i ./input/ -o output/ -- ../busybox bunzip2 -c -`
+* `afl-fuzz -i ./input/ -o output/ -- ../busybox tar -vtO -`
+* `afl-fuzz -i ./input/ -o output/ -- ../busybox tar -vxO -`
 
 
 #### Fuzzing Files
 
 Some applets take input from files. For example awk and grep (first create a.txt):
 
-* `afl-fuzz -i ./input/ -o output/ -- ./busybox awk -f @@ ./a.txt`
-* `afl-fuzz -i ./input/ -o output/ -- ./busybox grep -f @@ ./a.bin`
+* `afl-fuzz -i ./input/ -o output/ -- ../busybox awk -f @@ ./a.txt`
+* `afl-fuzz -i ./input/ -o output/ -- ../busybox grep -f @@ ./a.bin`
 
 
 #### Fuzzing Network-based Applets
